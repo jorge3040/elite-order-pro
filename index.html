@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Gourmet | Experiencia Visual</title>
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js (Lógica) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#020617',
+                        accent: '#f97316', // Naranja Premium
+                        glass: 'rgba(255, 255, 255, 0.03)',
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                        title: ['Syncopate', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #020617;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Gradientes Radiales de Fondo */
+        .bg-glow {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 10% 10%, rgba(249, 115, 22, 0.05) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 90%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(249, 115, 22, 0.5);
+            box-shadow: 0 20px 40px rgba(249, 115, 22, 0.15);
+        }
+
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-up { animation: fadeInUp 0.8s ease-out forwards; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #f97316; border-radius: 10px; }
+
+        /* Input Minimalista */
+        .input-minimalist {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            transition: border-color 0.3s;
+        }
+        .input-minimalist:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 4px 12px -2px rgba(249, 115, 22, 0.2);
+        }
+
+        .badge-usdt {
+            background: linear-gradient(90deg, #26A17B, #00FFA3);
+            text-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body x-data="restaurantApp()">
+
+    <div class="bg-glow"></div>
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center glass-card px-8 py-3 rounded-2xl">
+            <h1 class="font-title font-bold text-xl tracking-tighter text-white">
+                JHOSS <span class="text-accent">GOURMET</span>
+            </h1>
+            <button @click="isCartOpen = true" class="relative p-2 hover:scale-110 transition">
+                <i class="fa-solid fa-cart-shopping text-xl"></i>
+                <span x-show="cart.length > 0" x-text="cart.length" class="absolute -top-1 -right-1 bg-accent text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- HERO / CAROUSEL -->
+    <header class="relative h-screen w-full overflow-hidden">
+        <template x-for="(slide, index) in slides" :key="index">
+            <div x-show="currentSlide === index" 
+                 x-transition:enter="transition opacity duration-1000"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition opacity duration-1000"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="absolute inset-0">
+                <img :src="slide.image" class="w-full h-full object-cover brightness-50" alt="Local">
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+                    <h2 class="font-title text-4xl md:text-7xl mb-4 animate-up" x-text="slide.title"></h2>
+                    <p class="text-lg md:text-2xl font-light tracking-widest uppercase" x-text="slide.subtitle"></p>
+                </div>
+            </div>
+        </template>
+        
+        <!-- Controles Carrusel -->
+        <div class="absolute bottom-10 left-0 w-full flex justify-center gap-4">
+            <button @click="prevSlide" class="p-4 rounded-full glass-card hover:bg-accent transition"><i class="fa-solid fa-chevron-left"></i></button>
+            <button @click="nextSlide" class="p-4 rounded-full glass-card hover:bg-accent transition"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </header>
+
+    <!-- MENU SECTION -->
+    <main class="max-w-7xl mx-auto px-6 py-20">
+        <div class="mb-16 text-center">
+            <h3 class="font-title text-3xl mb-2">Nuestra Carta</h3>
+            <div class="w-20 h-1 bg-accent mx-auto"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <template x-for="product in products" :key="product.id">
+                <div class="glass-card rounded-3xl overflow-hidden group">
+                    <div class="h-64 overflow-hidden">
+                        <img :src="product.image" :alt="product.name" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                    </div>
+                    <div class="p-6">
+                        <h4 class="font-title text-lg mb-4" x-text="product.name"></h4>
+                        
+                        <!-- Triple Precio -->
+                        <div class="space-y-2 mb-6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-400 font-bold">USD</span>
+                                <span class="text-2xl font-bold text-white" x-text="'$' + product.price.toFixed(2)"></span>
+                            </div>
+                            <div class="flex justify-between items-center opacity-80">
+                                <span class="text-xs text-gray-400">VES (Tasa 45.00)</span>
+                                <span class="text-sm font-medium" x-text="(product.price * 45).toFixed(2) + ' Bs'"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="badge-usdt text-[10px] px-2 py-1 rounded-md font-bold text-dark">PROMO ₮</span>
+                                <span class="text-sm font-bold text-green-400" x-text="'₮' + (product.price - 1).toFixed(2)"></span>
+                            </div>
+                        </div>
+
+                        <button @click="addToCart(product)" class="w-full py-3 rounded-xl bg-white text-dark font-bold hover:bg-accent hover:text-white transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i> AGREGAR AL CARRITO
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </main>
+
+    <!-- CARRITO LATERAL (DRAWER) -->
+    <div x-show="isCartOpen" class="fixed inset-0 z-[60] overflow-hidden" style="display: none;">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isCartOpen = false"></div>
+        
+        <div class="absolute right-0 top-0 h-full w-full max-w-md bg-dark border-l border-white/10 shadow-2xl p-8 flex flex-col">
+            <div class="flex justify-between items-center mb-10">
+                <h3 class="font-title text-xl">Tu Pedido</h3>
+                <button @click="isCartOpen = false" class="text-2xl">&times;</button>
+            </div>
+
+            <!-- Items -->
+            <div class="flex-grow overflow-y-auto space-y-6 pr-2">
+                <template x-for="item in cart" :key="item.id">
+                    <div class="flex gap-4 items-center glass-card p-4 rounded-2xl">
+                        <img :src="item.image" class="w-16 h-16 rounded-xl object-cover">
+                        <div class="flex-grow">
+                            <h5 class="font-bold text-sm" x-text="item.name"></h5>
+                            <p class="text-accent text-xs" x-text="'$' + item.price"></p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button @click="updateQty(item.id, -1)" class="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10">-</button>
+                            <span class="font-bold text-sm" x-text="item.qty"></span>
+                            <button @click="updateQty(item.id, 1)" class="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10">+</button>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="cart.length === 0" class="text-center py-20 text-gray-500 italic">
+                    El carrito está vacío
+                </div>
+            </div>
+
+            <!-- Total y Botón Checkout -->
+            <div class="mt-8 border-t border-white/10 pt-6">
+                <div class="flex justify-between items-end mb-6">
+                    <span class="text-gray-400">Total Estimado:</span>
+                    <div class="text-right">
+                        <p class="text-3xl font-bold text-white transition-all" x-text="'$' + total.toFixed(2)"></p>
+                        <p class="text-xs text-green-400" x-text="'o ₮' + (total > 0 ? (total - 1).toFixed(2) : '0.00')"></p>
+                    </div>
+                </div>
+                
+                <button @click="showCheckout = true" x-show="cart.length > 0" class="w-full py-4 bg-accent text-white font-bold rounded-2xl shadow-lg shadow-accent/20 hover:scale-[1.02] transition active:scale-95">
+                    PROCEDER AL PAGO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CHECKOUT -->
+    <div x-show="showCheckout" class="fixed inset-0 z-[70] flex items-center justify-center p-4" style="display: none;">
+        <div class="absolute inset-0 bg-dark/90 backdrop-blur-md" @click="showCheckout = false"></div>
+        
+        <div class="relative w-full max-w-2xl glass-card rounded-3xl p-8 max-h-[90vh] overflow-y-auto">
+            <h3 class="font-title text-2xl mb-8 text-center">Datos de Finalización</h3>
+            
+            <form @submit.prevent="sendWhatsApp" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <input type="text" x-model="form.name" placeholder="Nombre y Apellido" required class="input-minimalist py-3 px-1">
+                <input type="text" x-model="form.id" placeholder="Cédula de Identidad" required class="input-minimalist py-3 px-1">
+                <input type="tel" x-model="form.phone" placeholder="Número de Teléfono" required class="input-minimalist py-3 px-1">
+                
+                <div class="md:col-span-2">
+                    <textarea x-model="form.address" placeholder="📍 Dirección Exacta de Entrega" required class="input-minimalist w-full py-3 px-1 h-20"></textarea>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="text-xs text-gray-400 uppercase tracking-widest mb-4 block">Método de Pago</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <template x-for="m in paymentMethods">
+                            <button type="button" @click="form.method = m.name; form.paymentData = m.data" 
+                                    :class="form.method === m.name ? 'border-accent bg-accent/10' : 'border-white/10'"
+                                    class="border p-3 rounded-xl text-[10px] font-bold transition flex flex-col items-center gap-2">
+                                <i :class="m.icon" class="text-lg"></i>
+                                <span x-text="m.name"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Datos de Pago Dinámicos -->
+                <div x-show="form.method" class="md:col-span-2 bg-white/5 p-4 rounded-2xl border border-dashed border-white/20 animate-up">
+                    <p class="text-xs text-gray-400 mb-2">Realiza el pago a:</p>
+                    <div class="flex justify-between items-center">
+                        <code class="text-accent font-bold" x-text="form.paymentData"></code>
+                        <button type="button" @click="copyData(form.paymentData)" class="text-xs bg-white/10 px-3 py-1 rounded-lg hover:bg-white/20 transition">Copiar</button>
+                    </div>
+                </div>
+
+                <input type="text" x-model="form.ref" placeholder="Número de Referencia" required class="md:col-span-2 input-minimalist py-3 px-1">
+
+                <button type="submit" class="md:col-span-2 bg-[#25D366] text-dark font-black py-5 rounded-2xl mt-4 flex items-center justify-center gap-3 hover:scale-[1.02] transition shadow-xl shadow-green-500/20">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i> CONFIRMAR PEDIDO
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function restaurantApp() {
+            return {
+                isCartOpen: false,
+                showCheckout: false,
+                currentSlide: 0,
+                total: 0,
+                cart: [],
+                form: {
+                    name: '', id: '', phone: '', address: '', method: '', paymentData: '', ref: ''
+                },
+                slides: [
+                    { title: 'EL ARTE DE COMER', subtitle: 'Ingredientes Seleccionados', image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&q=80&w=1600' },
+                    { title: 'NIGHT VIBES', subtitle: 'El mejor ambiente de la ciudad', image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=1600' }
+                ],
+                products: [
+                    { id: 1, name: 'Ultra Smash Burger', price: 12.00, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=800' },
+                    { id: 2, name: 'Truffle Pizza', price: 18.50, image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=800' },
+                    { id: 3, name: 'Ribs BBQ 24h', price: 22.00, image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=800' },
+                    { id: 4, name: 'Sushi Volcano Roll', price: 15.00, image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&q=80&w=800' },
+                    { id: 5, name: 'Crispy Chicken Bao', price: 10.00, image: 'https://images.unsplash.com/photo-1528137871618-79d2761e3fd5?auto=format&fit=crop&q=80&w=800' },
+                    { id: 6, name: 'Pasta Carbonara Real', price: 14.00, image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80&w=800' }
+                ],
+                paymentMethods: [
+                    { name: 'Pago Móvil', icon: 'fa-solid fa-mobile-screen', data: 'Banesco | 0412-7401944 | V-20123456' },
+                    { name: 'USDT (TRC20)', icon: 'fa-solid fa-money-bill-transfer', data: 'TYvD67PskJ92HnxM... (Binance Pay)' },
+                    { name: 'Zelle', icon: 'fa-solid fa-bolt', data: 'pagos@jhossgourmet.com' },
+                    { name: 'PayPal', icon: 'fa-brands fa-paypal', data: 'ventas@jhossgourmet.com' }
+                ],
+                
+                init() {
+                    setInterval(() => this.nextSlide(), 5000);
+                },
+                nextSlide() { this.currentSlide = (this.currentSlide + 1) % this.slides.length; },
+                prevSlide() { this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length; },
+                
+                addToCart(product) {
+                    const exists = this.cart.find(i => i.id === product.id);
+                    if (exists) {
+                        exists.qty++;
+                    } else {
+                        this.cart.push({ ...product, qty: 1 });
+                    }
+                    this.calculateTotal();
+                },
+                updateQty(id, change) {
+                    const item = this.cart.find(i => i.id === id);
+                    if (item) {
+                        item.qty += change;
+                        if (item.qty <= 0) this.cart = this.cart.filter(i => i.id !== id);
+                    }
+                    this.calculateTotal();
+                },
+                calculateTotal() {
+                    this.total = this.cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+                },
+                copyData(val) {
+                    navigator.clipboard.writeText(val);
+                    alert('Datos copiados al portapapeles');
+                },
+                sendWhatsApp() {
+                    const phone = "584127401944";
+                    let detail = this.cart.map(i => `${i.qty}x ${i.name}`).join(', ');
+                    
+                    let message = `🍔 *ORDEN DE COMPRA*\n\n`;
+                    message += `👤 *CLIENTE:* ${this.form.name} | CI: ${this.form.id}\n`;
+                    message += `📍 *UBICACIÓN:* ${this.form.address}\n`;
+                    message += `📝 *DETALLE:* ${detail}\n\n`;
+                    message += `💰 *TOTAL:* $${this.total.toFixed(2)} / Bs ${(this.total * 45).toFixed(2)}\n`;
+                    message += `💳 *PAGO:* ${this.form.method} | *REF:* ${this.form.ref}`;
+
+                    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+                    window.open(url, '_blank');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
